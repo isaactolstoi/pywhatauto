@@ -1320,88 +1320,90 @@ class autoBOT( ):
             elif key == 'tags' and release[key] is not None:  #if the filter option is "tags", search through it for that tag, don't do a re.match.
                 try:
                     for commastr in value.split(','):
-                        for str in commastr.split('\n'):
-                            str = str.lstrip().rstrip()
-                            if str != '':
-                                if str[0] != '@':
+                        for part in commastr.split('\n'):
+                            part = part.lstrip().rstrip()
+                            if part != '':
+                                if part[0] != '@':
                                     retags = re.findall('[\w\._-]+', release[key])
                                     for xt in retags:
-                                        if str.lower() == xt.lower():
-                                            out('FILTER',"Detected %s match using '%s' in %s" %(key,str,release[key]),site=self.name)
+                                        if part.lower() == xt.lower():
+                                            out('FILTER',"Detected %s match filter:'%s' torrent: %s" %(key,part,release[key]),site=self.name)
                                             return True
-                                elif str[0] == '@' and re.search(str[1:].lower(), release[key].lower().lstrip()):
-                                    out('FILTER',"Detected %s match using '%s' in %s" %(key,str,release[key]),site=self.name)
+                                elif part[0] == '@' and re.search(part[1:].lower(), release[key].lower().lstrip()):
+                                    out('FILTER',"Detected %s match: filter: '%s' torrent: %s" %(key,part,release[key]),site=self.name)
                                     return True
                                 else:
-                                    out('DEBUG',"Didn't detect %s match using %s in %s" %(key, str,release[key]),site=self.name)
+                                    out('DEBUG',"Didn't detect %s match using %s in %s" %(key, part,release[key]),site=self.name)
                     out('FILTER',"Didn't detect match in %s" %(key),site=self.name)
                 except Exception, e:
-                    out('ERROR','Tag Error: str: %s key: %s release[key]: %s Value: %s error: %s' %(str, key, release[key], value, e),site=self.name)
+                    out('ERROR','(1)Tag Error: str: %s key: %s release[key]: %s Value: %s error: %s' %(part, key, release[key], value, e),site=self.name)
                     pass
             elif key == 'all_tags' and release['tags'] is not None:
                 try:
                     for commastr in value.split(','):
-                        for str in commastr.split('\n'):
-                            str = str.lstrip().rstrip()
-                            if str != '':
-                                if str.lower() not in release['tags'].lower():
-                                    out('FILTER',"Didn't detect match using %s. Announcement is missing '%s'."%(key, str),site=self.name)
+                        for part in commastr.split('\n'):
+                            part = part.lstrip().rstrip()
+                            if part != '':
+                                if part.lower() not in release['tags'].lower():
+                                    out('FILTER',"Didn't detect match using %s. Announcement is missing '%s'."%(key, part),site=self.name)
                                     return False
                     out('FILTER',"Detected match using all_tags.", site=self.name)
                     return True
                 except Exception, e:
-                    out('ERROR','Tag Error: str: %s key: %s release[key]: %s Value: %s error: %s' %(str, key, release[key], value, e),site=self.name)
+                    out('ERROR','(2)Tag Error: str: %s key: %s release[key]: %s Value: %s error: %s' %(part, key, release[key], value, e),site=self.name)
             else: #if it's not a toggle option, size option, or tags option, check to make sure the values match
                 if release[key] is not None:
                     try:
                         for commastr in value.split(','):
-                            for str in commastr.split('\n'):
-                                str = str.lstrip().rstrip()
-                                if str != '':
-                                    if str[0] != '@' and str.lower() == release[key].lower():
-                                        out('FILTER',"Detected %s match using '%s' in %s" %(key,str,release[key]),site=self.name)
+                            for part in commastr.split('\n'):
+                                part = part.lstrip().rstrip()
+                                if part != '':
+                                    if part[0] != '@' and part.lower() == release[key].lower():
+                                        out('FILTER',"Detected %s match torrent:'%s' required %s, DBG(3:%s)" %(key,part,release[key],str(release)),site=self.name)
                                         return True
-                                    elif str[0] == '@' and re.match(str[1:].lower(), release[key].lower().lstrip()):
-                                        out('FILTER',"Detected %s match using '%s' in %s" %(key,str,release[key]),site=self.name)
+                                    elif part[0] == '@' and re.match(part[1:].lower(), release[key].lower().lstrip()):
+                                        out('FILTER',"Detected %s match torrent:'%s' required: %s DBG(4,%s)" %(key,part,release[key],str(release)),site=self.name)
                                         return True
                                     else:
-                                        out('DEBUG',"Didn't detect %s match using '%s' in %s" %(key, str, release[key]),site=self.name)
+                                        out('DEBUG',"Didn't detect %s match torrent:'%s' required %s DBG(5,%s)" %(key, part, release[key], str(release)),site=self.name)
                         out('FILTER',"Didn't detect match in %s" %(key),site=self.name)
                     except Exception, e:
-                        out('ERROR','Tag Error: str: %s key: %s release[key]: %s Value: %s error: %s' %(str, key, release[key], value, e),site=self.name)
+			import sys
+			e_type, e_obj, e_info = sys.exc_info()
+                        out('ERROR','(3)Tag Error: str: %s key: %s release[key]: %s Value: %s error: %s(line%i)' %(part, key, release[key], value, e, e_info.tb_lineno),site=self.name)
         elif "not_" in key: # how about if it's a not_filter option?
             if key.replace('not_','') in release.keys() and release[key.replace('not_','')] is not None:
                 nkey = key.replace('not_','')
                 if nkey == 'tags': #if the not_filter option is not_tags, search the values don't match them
                     try:
                         for commastr in value.split(','):
-                            for str in commastr.split('\n'):
-                                str = str.lstrip().rstrip()      
-                                if str[0] != '@':
+                            for part in commastr.split('\n'):
+                                part = part.lstrip().rstrip()      
+                                if part[0] != '@':
                                     retags = re.findall('[\w\._-]+', release[nkey])
                                     for xt in retags:
-                                        if str.lower() == xt.lower():
-                                            out('FILTER',"Detected %s present in %s, which is disallowed by %s" %(str, nkey, key),site=self.name)
+                                        if part.lower() == xt.lower():
+                                            out('FILTER',"Detected %s present in %s, which is disallowed by %s" %(part, nkey, key),site=self.name)
                                             return False
-                                elif str[0] == '@' and re.search(str[1:].lower(), release[nkey].lower().lstrip()):
-                                    out('FILTER',"Detected %s present in %s, which is disallowed by %s" %(str, nkey, key),site=self.name)
+                                elif part[0] == '@' and re.search(part[1:].lower(), release[nkey].lower().lstrip()):
+                                    out('FILTER',"Detected %s present in %s, which is disallowed by %s" %(part, nkey, key),site=self.name)
                                     return False
                     except Exception, e:
-                        out('ERROR','Tag Error: str: %s key: %s release[key]: %s Value: %s error: %s' %(str, nkey, release[key], value, e),site=self.name)
+                        out('ERROR','(4)Tag Error: str: %s key: %s release[key]: %s Value: %s error: %s' %(part, nkey, release[key], value, e),site=self.name)
                         pass
                 else: #otherwise it's not multiple values to be searched, so just match it
                     try:
                         for commastr in value.split(','):
-                            for str in commastr.split('\n'):
-                                str = str.lstrip().rstrip()
-                                if str[0] != '@' and str.lower() == release[nkey].lower():
-                                    out('FILTER',"Detected %s present in %s, which is in %s" %(str, nkey, key),site=self.name)
+                            for part in commastr.split('\n'):
+                                part = part.lstrip().rstrip()
+                                if part[0] != '@' and part.lower() == release[nkey].lower():
+                                    out('FILTER',"Detected %s present in %s, which is in %s" %(part, nkey, key),site=self.name)
                                     return False
-                                elif str[0] == '@' and re.match(str[1:].lower(), release[nkey].lower().lstrip()):
-                                    out('FILTER',"Detected %s present in %s, which is in %s " %(str, nkey, key),site=self.name)
+                                elif part[0] == '@' and re.match(part[1:].lower(), release[nkey].lower().lstrip()):
+                                    out('FILTER',"Detected %s present in %s, which is in %s " %(part, nkey, key),site=self.name)
                                     return False
                     except Exception, e:
-                        out('ERROR','Tag Error: str: %s key: %s release[key]: %s Value: %s error: %s' %(str, nkey, release[key], value, e),site=self.name)
+                        out('ERROR','(5)Tag Error: str: %s key: %s release[key]: %s Value: %s error: %s' %(part, nkey, release[key], value, e),site=self.name)
                         pass
             out('FILTER',"Didn't detect any values present in \'%s\'" %(key),site=self.name)
             return True           
